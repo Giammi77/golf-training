@@ -1,0 +1,75 @@
+=====================================================
+IMPORTAZIONE DATI DA GENROPY
+=====================================================
+
+Il comando migrate_from_genropy legge dal database GenroPy
+(database "exercise", schema "glf") e importa tutto nel
+nuovo database Django.
+
+Connessione al DB sorgente configurata in development.py:
+  GENROPY_DB_NAME=exercise
+  GENROPY_DB_USER=postgres
+  GENROPY_DB_PASSWORD=postgres
+  GENROPY_DB_HOST=localhost
+  GENROPY_DB_PORT=5432
+
+
+=====================================================
+COMANDI
+=====================================================
+
+# Tutti i comandi vanno eseguiti dalla cartella backend:
+cd golf-training/backend
+
+# Preview senza scrivere nulla (consigliato per prima prova)
+python manage.py migrate_from_genropy --dry-run
+
+# Migrazione completa di tutti i dati
+python manage.py migrate_from_genropy
+
+# Migrare solo una tabella specifica
+python manage.py migrate_from_genropy --only=clubs
+python manage.py migrate_from_genropy --only=users
+python manage.py migrate_from_genropy --only=holes
+python manage.py migrate_from_genropy --only=hcp_allocations
+python manage.py migrate_from_genropy --only=golfers
+python manage.py migrate_from_genropy --only=matches
+python manage.py migrate_from_genropy --only=scores
+python manage.py migrate_from_genropy --only=rankings
+python manage.py migrate_from_genropy --only=results
+
+
+=====================================================
+ORDINE DI MIGRAZIONE
+=====================================================
+
+L'ordine e' importante per le dipendenze tra tabelle.
+Il comando completo (senza --only) lo rispetta automaticamente.
+
+  1. users         -> Utenti da adm.user
+  2. clubs         -> Club da glf.club
+  3. holes         -> Buche da glf.percorso
+  4. hcp_alloc.    -> Tabella HCP da glf.hcp_percorso
+  5. golfers       -> Profili golfista da glf.anagrafica
+  6. matches       -> Match da glf.match
+  7. scores        -> Score da glf.score
+  8. rankings      -> Classifiche da glf.classifica
+  9. results       -> Risultati HCP da glf.result
+
+
+=====================================================
+NOTE IMPORTANTI
+=====================================================
+
+- Il comando e' idempotente: puo' essere rieseguito senza
+  duplicare dati (usa il campo legacy_id per il mapping)
+
+- Le password degli utenti NON vengono migrate (hashing diverso).
+  Dopo la migrazione, impostare le password tramite admin Django
+  oppure usare: python manage.py changepassword <username>
+
+- Score e Results usano bulk_create per performance (batch da 500)
+
+- Il mapping tra vecchi ID GenroPy (stringhe 22 caratteri) e nuovi
+  ID Django (numeri auto-incrementali) viene gestito tramite il
+  campo legacy_id presente su ogni modello

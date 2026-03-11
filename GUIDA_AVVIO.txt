@@ -1,0 +1,234 @@
+=====================================================
+GOLF TRAINING - GUIDA AVVIO PROGETTO
+=====================================================
+
+PREREQUISITI
+-----------------------------------------------------
+- Python 3.12+
+- Node.js 22+
+- PostgreSQL 16+
+- Docker e Docker Compose (opzionale)
+
+
+=====================================================
+AVVIO IN SVILUPPO (senza Docker)
+=====================================================
+
+1. BACKEND (Django)
+-----------------------------------------------------
+
+cd golf-training/backend
+
+# Crea e attiva il virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Installa le dipendenze
+pip install -r requirements.txt
+
+# Crea le tabelle nel database
+python manage.py makemigrations users clubs courses matches results
+python manage.py migrate
+
+# Crea l'utente amministratore
+python manage.py createsuperuser
+
+# Avvia il server Django
+python manage.py runserver
+
+Il backend sara' disponibile su: http://localhost:8000
+Admin Django: http://localhost:8000/admin/
+API: http://localhost:8000/api/v1/
+
+
+2. FRONTEND (React) - in un altro terminale
+-----------------------------------------------------
+
+cd golf-training/frontend
+
+# Installa le dipendenze
+npm install
+
+# Avvia il server di sviluppo
+npm run dev
+
+Il frontend sara' disponibile su: http://localhost:5173
+
+
+=====================================================
+AVVIO CON DOCKER COMPOSE
+=====================================================
+
+cd golf-training
+
+# Avvio in sviluppo (con hot reload)
+docker compose -f docker-compose.dev.yml up --build
+
+# Avvio in produzione
+docker compose up --build
+
+Sviluppo:
+  - Frontend: http://localhost:3000
+  - Backend:  http://localhost:8000
+  - Database PostgreSQL sulla porta 5433
+
+Produzione:
+  - Tutto dietro Nginx sulla porta 80
+
+
+=====================================================
+CONFIGURAZIONE DATABASE
+=====================================================
+
+Il file di configurazione e' in:
+  backend/config/settings/development.py
+
+Valori di default:
+  DB_NAME=golf
+  DB_USER=postgres
+  DB_PASSWORD=postgres
+  DB_HOST=localhost
+  DB_PORT=5432
+
+Per personalizzare, puoi impostare variabili d'ambiente
+oppure modificare il file .env (copia da .env.example).
+
+
+=====================================================
+IMPORTAZIONE DATI DA GENROPY
+=====================================================
+
+Il comando migrate_from_genropy legge dal database GenroPy
+(database "exercise", schema "glf") e importa tutto nel
+nuovo database Django.
+
+Connessione al DB sorgente configurata in development.py:
+  GENROPY_DB_NAME=exercise
+  GENROPY_DB_USER=postgres
+  GENROPY_DB_PASSWORD=postgres
+  GENROPY_DB_HOST=localhost
+  GENROPY_DB_PORT=5432
+
+COMANDI:
+
+# Preview senza scrivere nulla (consigliato per prima prova)
+python manage.py migrate_from_genropy --dry-run
+
+# Migrazione completa di tutti i dati
+python manage.py migrate_from_genropy
+
+# Migrare solo una tabella specifica
+python manage.py migrate_from_genropy --only=clubs
+python manage.py migrate_from_genropy --only=users
+python manage.py migrate_from_genropy --only=holes
+python manage.py migrate_from_genropy --only=hcp_allocations
+python manage.py migrate_from_genropy --only=golfers
+python manage.py migrate_from_genropy --only=matches
+python manage.py migrate_from_genropy --only=scores
+python manage.py migrate_from_genropy --only=rankings
+python manage.py migrate_from_genropy --only=results
+
+ORDINE DI MIGRAZIONE (automatico con il comando completo):
+  1. users       -> Utenti da adm.user
+  2. clubs       -> Club da glf.club
+  3. holes       -> Buche da glf.percorso
+  4. hcp_alloc.  -> Tabella HCP da glf.hcp_percorso
+  5. golfers     -> Profili golfista da glf.anagrafica
+  6. matches     -> Match da glf.match
+  7. scores      -> Score da glf.score
+  8. rankings    -> Classifiche da glf.classifica
+  9. results     -> Risultati HCP da glf.result
+
+NOTE:
+- Il comando e' idempotente: puo' essere rieseguito senza
+  duplicare dati (usa il campo legacy_id per il mapping)
+- Le password degli utenti NON vengono migrate (hashing diverso).
+  Dopo la migrazione, impostare le password tramite admin Django
+  oppure usare: python manage.py changepassword <username>
+- Score e Results usano bulk_create per performance (batch da 500)
+
+
+=====================================================
+DOPO IL PRIMO AVVIO (alternativa senza dati GenroPy)
+=====================================================
+
+1. Accedi all'admin Django: http://localhost:8000/admin/
+2. Crea almeno un Club
+3. Crea le 18 buche (Hole) per il club con par e stroke index
+4. Assegna un GolferProfile a ogni utente (con HCP)
+5. Apri il frontend mobile e accedi con le credenziali
+
+
+=====================================================
+STRUTTURA PROGETTO
+=====================================================
+
+golf-training/
+  docker-compose.yml          # Produzione
+  docker-compose.dev.yml      # Sviluppo
+  .env.example                # Variabili d'ambiente
+
+  backend/
+    manage.py
+    requirements.txt
+    Dockerfile
+    config/                   # Settings Django
+    apps/
+      users/                  # Utenti + Profilo Golfista
+      clubs/                  # Club
+      courses/                # Buche + Tabella HCP
+      matches/                # Match + Score + Classifica
+        services.py           # Logica Stableford, HCP, classifiche
+      results/                # Risultati HCP ufficiali
+        services.py           # Import file + calcolo best 8
+
+  frontend/
+    package.json
+    Dockerfile
+    Dockerfile.dev
+    src/
+      api/                    # Client API con JWT
+      store/                  # Zustand (stato auth)
+      pages/                  # Login, Match, History, Statistics, Results, Profile
+      components/             # ScoreCard, LeaderboardTable, Layout
+      types/                  # Interfacce TypeScript
+
+  nginx/
+    nginx.conf                # Reverse proxy
+
+
+=====================================================
+API ENDPOINTS PRINCIPALI
+=====================================================
+
+AUTH:
+  POST /api/v1/auth/token/           Login (username + password)
+  POST /api/v1/auth/token/refresh/   Refresh token JWT
+  GET  /api/v1/auth/me/              Profilo utente corrente
+
+CLUB:
+  GET  /api/v1/clubs/                Lista club
+  GET  /api/v1/clubs/{id}/           Dettaglio club
+
+MATCH:
+  POST /api/v1/matches/register/     Registra match del giorno
+  GET  /api/v1/matches/{id}/scores/  Score per match
+  GET  /api/v1/matches/{id}/leaderboard/  Classifica live
+
+SCORE:
+  PATCH /api/v1/scores/{id}/increment/   +1 colpo
+  PATCH /api/v1/scores/{id}/decrement/   -1 colpo
+  POST  /api/v1/scores/finish/           Termina match
+
+STORICO:
+  GET  /api/v1/history/matches/              Match passati
+  GET  /api/v1/history/matches/{id}/scores/  Dettaglio score
+
+STATISTICHE:
+  GET  /api/v1/statistics/points-trend/        Trend punti
+  GET  /api/v1/statistics/points-distribution/  Distribuzione punti
+
+RISULTATI HCP:
+  GET  /api/v1/results/?section=all|last20|best8  Risultati ufficiali
+  POST /api/v1/results/import/                     Import file HTML/Excel
+  GET  /api/v1/results/summary/                    Riepilogo SD

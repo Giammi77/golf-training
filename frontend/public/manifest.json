@@ -1,0 +1,16 @@
+{
+  "name": "Golf Training",
+  "short_name": "Golf",
+  "description": "Golf Training Score Management",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#2d5016",
+  "icons": [
+    {
+      "src": "/golf.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
