@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { getMe, updateMe, changePassword } from '@/api/auth';
+import { getMe, updateMe, changePassword, resetMyScores } from '@/api/auth';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [pwdMsg, setPwdMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [resetMsg, setResetMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -63,6 +64,24 @@ export default function ProfilePage() {
   const handleChangePassword = () => {
     setPwdMsg(null);
     pwdMutation.mutate();
+  };
+
+  const resetScoresMutation = useMutation({
+    mutationFn: resetMyScores,
+    onSuccess: (data) => {
+      setResetMsg({ type: 'success', text: data.detail });
+      queryClient.invalidateQueries({ queryKey: ['history'] });
+      queryClient.invalidateQueries({ queryKey: ['statistics'] });
+    },
+    onError: () => {
+      setResetMsg({ type: 'error', text: 'Errore nel reset dei risultati.' });
+    },
+  });
+
+  const handleResetScores = () => {
+    if (!window.confirm('Sei sicuro di voler cancellare TUTTI i tuoi risultati? Le statistiche ripartiranno da zero. Questa azione non e\' reversibile.')) return;
+    setResetMsg(null);
+    resetScoresMutation.mutate();
   };
 
   const handleSave = () => {
@@ -239,9 +258,25 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Reset Risultati */}
+      <div className="mt-6 border-t border-gray-200 pt-4">
+        <button
+          onClick={handleResetScores}
+          disabled={resetScoresMutation.isPending}
+          className="w-full bg-orange-500 text-white py-2.5 rounded-lg font-semibold disabled:opacity-50"
+        >
+          {resetScoresMutation.isPending ? 'Cancellazione...' : 'Azzera Risultati'}
+        </button>
+        {resetMsg && (
+          <p className={`text-sm mt-2 text-center ${resetMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+            {resetMsg.text}
+          </p>
+        )}
+      </div>
+
       <button
         onClick={handleLogout}
-        className="w-full mt-6 bg-red-500 text-white py-2.5 rounded-lg font-semibold"
+        className="w-full mt-4 bg-red-500 text-white py-2.5 rounded-lg font-semibold"
       >
         Esci
       </button>

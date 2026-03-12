@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from apps.matches.models import Score, Ranking
 from .models import User
 from .serializers import (
     MeSerializer,
@@ -57,3 +58,21 @@ class ResetGolferPasswordView(APIView):
         user.set_password(default_password)
         user.save()
         return Response({'detail': f'Password resettata a: {default_password}'})
+
+
+class ResetMyScoresView(APIView):
+    """POST /api/v1/auth/reset-scores/ - Delete all scores and rankings for current user."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        profile = getattr(request.user, 'golfer_profile', None)
+        if not profile:
+            return Response(
+                {'detail': 'Profilo golfista non trovato.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        scores_deleted, _ = Score.objects.filter(golfer=profile).delete()
+        rankings_deleted, _ = Ranking.objects.filter(golfer=profile).delete()
+        return Response({
+            'detail': f'Eliminati {scores_deleted} score e {rankings_deleted} classifiche.',
+        })

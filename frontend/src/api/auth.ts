@@ -34,3 +34,8 @@ export const resetGolferPassword = async (golferId: number): Promise<{ detail: s
   const { data } = await client.post<{ detail: string }>(`/auth/golfers/${golferId}/reset-password/`);
   return data;
 };
+
+export const resetMyScores = async (): Promise<{ detail: string }> => {
+  const { data } = await client.post<{ detail: string }>('/auth/reset-scores/');
+  return data;
+};

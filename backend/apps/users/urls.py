@@ -9,4 +9,5 @@ urlpatterns = [
     path('change-password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('golfers/', views.GolferListView.as_view(), name='golfer_list'),
     path('golfers/<int:pk>/reset-password/', views.ResetGolferPasswordView.as_view(), name='reset_golfer_password'),
+    path('reset-scores/', views.ResetMyScoresView.as_view(), name='reset_my_scores'),
 ]
