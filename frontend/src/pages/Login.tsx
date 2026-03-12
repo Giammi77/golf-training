@@ -27,12 +27,19 @@ export default function Login() {
     try {
       const tokens = await login(username, password);
       setTokens(tokens.access, tokens.refresh);
-      if (selectedClub) setClubId(selectedClub);
 
       const user = await getMe();
+      const isAdminOnly = user.is_staff && !user.golfer_profile;
+
+      if (!isAdminOnly && !selectedClub) {
+        setError('Seleziona un club');
+        setLoading(false);
+        return;
+      }
+
+      if (selectedClub) setClubId(selectedClub);
       setUser(user);
 
-      const isAdminOnly = user.is_staff && !user.golfer_profile;
       navigate(isAdminOnly ? '/gestione/giocatori' : '/match');
     } catch {
       setError('Credenziali non valide');
