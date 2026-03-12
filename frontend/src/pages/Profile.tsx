@@ -102,11 +102,14 @@ export default function ProfilePage() {
   };
 
   const profile = user?.golfer_profile;
+  const isAdminOnly = user?.is_staff && !user?.golfer_profile;
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Profilo Golfista</h2>
+        <h2 className="text-lg font-semibold text-gray-700">
+          {isAdminOnly ? 'Profilo Amministratore' : 'Profilo Golfista'}
+        </h2>
         {user && !editing && (
           <button
             onClick={() => setEditing(true)}
@@ -258,21 +261,23 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Reset Risultati */}
-      <div className="mt-6 border-t border-gray-200 pt-4">
-        <button
-          onClick={handleResetScores}
-          disabled={resetScoresMutation.isPending}
-          className="w-full bg-orange-500 text-white py-2.5 rounded-lg font-semibold disabled:opacity-50"
-        >
-          {resetScoresMutation.isPending ? 'Cancellazione...' : 'Azzera Risultati'}
-        </button>
-        {resetMsg && (
-          <p className={`text-sm mt-2 text-center ${resetMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
-            {resetMsg.text}
-          </p>
-        )}
-      </div>
+      {/* Reset Risultati — solo per giocatori */}
+      {!isAdminOnly && (
+        <div className="mt-6 border-t border-gray-200 pt-4">
+          <button
+            onClick={handleResetScores}
+            disabled={resetScoresMutation.isPending}
+            className="w-full bg-orange-500 text-white py-2.5 rounded-lg font-semibold disabled:opacity-50"
+          >
+            {resetScoresMutation.isPending ? 'Cancellazione...' : 'Azzera Risultati'}
+          </button>
+          {resetMsg && (
+            <p className={`text-sm mt-2 text-center ${resetMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+              {resetMsg.text}
+            </p>
+          )}
+        </div>
+      )}
 
       <button
         onClick={handleLogout}

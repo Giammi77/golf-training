@@ -14,7 +14,12 @@ export default function Layout() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
 
-  const tabs = user?.is_staff ? [...baseTabs, adminTab] : baseTabs;
+  const isAdminOnly = user?.is_staff && !user?.golfer_profile;
+  const tabs = isAdminOnly
+    ? [adminTab]
+    : user?.is_staff
+      ? [...baseTabs, adminTab]
+      : baseTabs;
 
   return (
     <div className="flex flex-col min-h-screen max-w-lg mx-auto bg-white">

@@ -21,23 +21,19 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClub) {
-      setError('Seleziona un club');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
       const tokens = await login(username, password);
       setTokens(tokens.access, tokens.refresh);
-      setClubId(selectedClub);
+      if (selectedClub) setClubId(selectedClub);
 
       const user = await getMe();
       setUser(user);
 
-      navigate('/match');
+      const isAdminOnly = user.is_staff && !user.golfer_profile;
+      navigate(isAdminOnly ? '/gestione/giocatori' : '/match');
     } catch {
       setError('Credenziali non valide');
     } finally {
