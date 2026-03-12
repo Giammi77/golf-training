@@ -17,7 +17,15 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', 'db'),
         'PORT': os.environ.get('DB_PORT', '5432'),
-    }
+    },
+    'genropy': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('GENROPY_DB_NAME', 'exercise'),
+        'USER': os.environ.get('GENROPY_DB_USER', os.environ.get('DB_USER', 'postgres')),
+        'PASSWORD': os.environ.get('GENROPY_DB_PASSWORD', os.environ.get('DB_PASSWORD', '')),
+        'HOST': os.environ.get('GENROPY_DB_HOST', os.environ.get('DB_HOST', 'db')),
+        'PORT': os.environ.get('GENROPY_DB_PORT', os.environ.get('DB_PORT', '5432')),
+    },
 }
 
 # Security
