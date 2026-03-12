@@ -26,8 +26,8 @@ export const changePassword = async (old_password: string, new_password: string)
 };
 
 export const getGolfers = async (): Promise<User[]> => {
-  const { data } = await client.get<User[]>('/auth/golfers/');
-  return data;
+  const { data } = await client.get<{ results: User[] }>('/auth/golfers/');
+  return data.results;
 };
 
 export const resetGolferPassword = async (golferId: number): Promise<{ detail: string }> => {
