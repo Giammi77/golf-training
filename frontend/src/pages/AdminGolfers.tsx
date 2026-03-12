@@ -44,8 +44,9 @@ export default function AdminGolfersPage() {
                 {g.last_name} {g.first_name}
               </div>
               <div className="text-xs text-gray-500">
-                {g.golfer_profile?.nr_tessera && `Tessera: ${g.golfer_profile.nr_tessera} · `}
-                HCP: {g.golfer_profile?.hcp ?? '-'}
+                @{g.username}
+                {g.golfer_profile?.nr_tessera && ` · Tessera: ${g.golfer_profile.nr_tessera}`}
+                {' · '}HCP: {g.golfer_profile?.hcp ?? '-'}
               </div>
             </div>
             <div className="flex flex-col items-end gap-1">
