@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { getMe, updateMe } from '@/api/auth';
+import { getMe, updateMe, changePassword } from '@/api/auth';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -21,6 +21,10 @@ export default function ProfilePage() {
   const [nrTessera, setNrTessera] = useState('');
   const [hcp, setHcp] = useState('');
 
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [pwdMsg, setPwdMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   useEffect(() => {
     if (user) {
       setFirstName(user.first_name);
@@ -38,6 +42,28 @@ export default function ProfilePage() {
       setEditing(false);
     },
   });
+
+  const pwdMutation = useMutation({
+    mutationFn: () => changePassword(oldPassword, newPassword),
+    onSuccess: () => {
+      setPwdMsg({ type: 'success', text: 'Password aggiornata con successo.' });
+      setOldPassword('');
+      setNewPassword('');
+    },
+    onError: (err: any) => {
+      const detail =
+        err?.response?.data?.old_password?.[0] ||
+        err?.response?.data?.new_password?.[0] ||
+        err?.response?.data?.detail ||
+        'Errore nel cambio password.';
+      setPwdMsg({ type: 'error', text: detail });
+    },
+  });
+
+  const handleChangePassword = () => {
+    setPwdMsg(null);
+    pwdMutation.mutate();
+  };
 
   const handleSave = () => {
     mutation.mutate({
@@ -154,6 +180,39 @@ export default function ProfilePage() {
                 onChange={(e) => setNrTessera(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-golf-green focus:border-transparent"
               />
+            </div>
+          </div>
+
+          {/* Cambio Password */}
+          <div className="border-t border-gray-200 pt-3 mt-1">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Cambia Password</h3>
+            <div className="space-y-2">
+              <input
+                type="password"
+                placeholder="Password attuale"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-golf-green focus:border-transparent"
+              />
+              <input
+                type="password"
+                placeholder="Nuova password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-golf-green focus:border-transparent"
+              />
+              {pwdMsg && (
+                <p className={`text-sm ${pwdMsg.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                  {pwdMsg.text}
+                </p>
+              )}
+              <button
+                onClick={handleChangePassword}
+                disabled={!oldPassword || !newPassword || pwdMutation.isPending}
+                className="w-full bg-gray-700 text-white py-2 rounded-lg text-sm font-semibold disabled:opacity-50"
+              >
+                {pwdMutation.isPending ? 'Aggiornamento...' : 'Cambia Password'}
+              </button>
             </div>
           </div>
 

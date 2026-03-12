@@ -20,3 +20,17 @@ export const updateMe = async (payload: {
   const { data } = await client.patch<User>('/auth/me/', payload);
   return data;
 };
+
+export const changePassword = async (old_password: string, new_password: string): Promise<void> => {
+  await client.post('/auth/change-password/', { old_password, new_password });
+};
+
+export const getGolfers = async (): Promise<User[]> => {
+  const { data } = await client.get<User[]>('/auth/golfers/');
+  return data;
+};
+
+export const resetGolferPassword = async (golferId: number): Promise<{ detail: string }> => {
+  const { data } = await client.post<{ detail: string }>(`/auth/golfers/${golferId}/reset-password/`);
+  return data;
+};

@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import User, GolferProfile
 
@@ -26,8 +27,8 @@ class MeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'golfer_profile']
-        read_only_fields = ['id', 'username']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'is_staff', 'golfer_profile']
+        read_only_fields = ['id', 'username', 'is_staff']
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('golfer_profile', None)
@@ -38,3 +39,27 @@ class MeSerializer(serializers.ModelSerializer):
                 setattr(profile, attr, value)
             profile.save()
         return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError('Password attuale non corretta.')
+        return value
+
+    def validate_new_password(self, value):
+        validate_password(value, self.context['request'].user)
+        return value
+
+
+class AdminGolferSerializer(serializers.ModelSerializer):
+    golfer_profile = GolferProfileSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'golfer_profile']
+        read_only_fields = fields

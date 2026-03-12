@@ -7,10 +7,19 @@ import HistoryPage from '@/pages/History';
 import StatisticsPage from '@/pages/Statistics';
 import ResultsPage from '@/pages/Results';
 import ProfilePage from '@/pages/Profile';
+import AdminGolfersPage from '@/pages/AdminGolfers';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!user?.is_staff) return <Navigate to="/match" replace />;
   return <>{children}</>;
 }
 
@@ -32,6 +41,14 @@ export default function App() {
         <Route path="statistics" element={<StatisticsPage />} />
         <Route path="results" element={<ResultsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route
+          path="gestione/giocatori"
+          element={
+            <AdminRoute>
+              <AdminGolfersPage />
+            </AdminRoute>
+          }
+        />
       </Route>
     </Routes>
   );

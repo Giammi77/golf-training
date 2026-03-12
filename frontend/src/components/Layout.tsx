@@ -1,16 +1,20 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 
-const tabs = [
+const baseTabs = [
   { path: '/match', label: 'Match', icon: '⛳' },
   { path: '/history', label: 'Storico', icon: '📋' },
   { path: '/statistics', label: 'Stats', icon: '📊' },
   { path: '/results', label: 'HCP', icon: '🏆' },
 ];
 
+const adminTab = { path: '/gestione/giocatori', label: 'Admin', icon: '🔧' };
+
 export default function Layout() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+
+  const tabs = user?.is_staff ? [...baseTabs, adminTab] : baseTabs;
 
   return (
     <div className="flex flex-col min-h-screen max-w-lg mx-auto bg-white">
