@@ -1,16 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#2d5016"/>
-  <g transform="translate(256,240)">
-    <!-- Golf ball -->
-    <circle cx="0" cy="60" r="40" fill="#fff"/>
-    <circle cx="-10" cy="50" r="3" fill="#ddd"/>
-    <circle cx="5" cy="45" r="3" fill="#ddd"/>
-    <circle cx="10" cy="60" r="3" fill="#ddd"/>
-    <circle cx="-5" cy="70" r="3" fill="#ddd"/>
-    <circle cx="8" cy="75" r="3" fill="#ddd"/>
-    <!-- Golf flag pole -->
-    <line x1="0" y1="20" x2="0" y2="-140" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
-    <!-- Flag -->
-    <path d="M3,-140 L70,-115 L3,-90 Z" fill="#ef4444"/>
-  </g>
+  <!-- Deep green background -->
+  <rect width="512" height="512" rx="112" fill="#0a5c1a"/>
+
+  <!-- Stylized golf green (lighter patch) -->
+  <ellipse cx="256" cy="300" rx="180" ry="120" fill="#14802a"/>
+
+  <!-- Hole -->
+  <ellipse cx="280" cy="310" rx="30" ry="10" fill="#063310"/>
+
+  <!-- Flag pole -->
+  <line x1="280" y1="310" x2="280" y2="90" stroke="#f0c040" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Large waving flag -->
+  <path d="M283,90 Q340,110 310,130 Q370,150 283,170" fill="#ff3b30" stroke="#cc2a22" stroke-width="1"/>
+
+  <!-- Golf ball - large, near hole -->
+  <circle cx="190" cy="290" r="55" fill="#fff"/>
+  <circle cx="172" cy="272" r="6" fill="#e0e0e0"/>
+  <circle cx="195" cy="268" r="6" fill="#e0e0e0"/>
+  <circle cx="212" cy="280" r="6" fill="#e0e0e0"/>
+  <circle cx="180" cy="295" r="6" fill="#e0e0e0"/>
+  <circle cx="202" cy="292" r="6" fill="#e0e0e0"/>
+  <circle cx="190" cy="312" r="6" fill="#e0e0e0"/>
+
+  <!-- Bold text at bottom -->
+  <text x="256" y="460" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="60" fill="#fff" letter-spacing="6">GOLF</text>
 </svg>
