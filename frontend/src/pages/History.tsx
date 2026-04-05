@@ -1,15 +1,30 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getHistoryMatches, getHistoryScores } from '@/api/statistics';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getHistoryMatches, getHistoryScores, deleteHistoryMatch } from '@/api/statistics';
 import type { HistoryMatch, Score } from '@/types';
 
 export default function HistoryPage() {
   const [selectedMatch, setSelectedMatch] = useState<HistoryMatch | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ['history-matches'],
     queryFn: getHistoryMatches,
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteHistoryMatch,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['history-matches'] });
+    },
+  });
+
+  const handleDelete = (e: React.MouseEvent, matchId: number) => {
+    e.stopPropagation();
+    if (confirm('Sei sicuro di voler eliminare questo match dallo storico?')) {
+      deleteMutation.mutate(matchId);
+    }
+  };
 
   const { data: scores = [] } = useQuery({
     queryKey: ['history-scores', selectedMatch?.id],
@@ -72,10 +87,10 @@ export default function HistoryPage() {
       ) : (
         <div className="divide-y">
           {matches.map((match: HistoryMatch) => (
-            <button
+            <div
               key={match.id}
               onClick={() => setSelectedMatch(match)}
-              className="w-full flex items-center px-4 py-3 hover:bg-gray-50 text-left"
+              className="w-full flex items-center px-4 py-3 hover:bg-gray-50 text-left cursor-pointer"
             >
               <div className="flex-1">
                 <div className="font-semibold text-sm">{match.data} - Giro {match.nr_giro}</div>
@@ -85,8 +100,16 @@ export default function HistoryPage() {
                 <div className="text-lg font-bold text-golf-green">{match.punti} pt</div>
                 <div className="text-xs text-gray-500">Pos. {match.posizione ?? '-'}</div>
               </div>
+              <button
+                onClick={(e) => handleDelete(e, match.id)}
+                className="ml-3 p-2 text-red-500 hover:bg-red-50 rounded"
+                title="Elimina match"
+                disabled={deleteMutation.isPending}
+              >
+                🗑
+              </button>
               <div className="ml-2 text-gray-400">&rsaquo;</div>
-            </button>
+            </div>
           ))}
         </div>
       )}

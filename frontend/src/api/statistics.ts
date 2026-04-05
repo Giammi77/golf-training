@@ -11,6 +11,10 @@ export const getHistoryScores = async (matchId: number): Promise<Score[]> => {
   return data.results ?? data;
 };
 
+export const deleteHistoryMatch = async (matchId: number): Promise<void> => {
+  await client.delete(`/history/matches/${matchId}/`);
+};
+
 export const getPointsTrend = async (limit = 15): Promise<PointsTrend[]> => {
   const { data } = await client.get(`/statistics/points-trend/?limit=${limit}`);
   return data.results ?? data;

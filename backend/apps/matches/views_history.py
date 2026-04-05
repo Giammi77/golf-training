@@ -1,4 +1,5 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.response import Response
 from django.db.models import Sum, Case, When, Value, IntegerField, F, Subquery, OuterRef
 from .models import Match, Score, Ranking
 from .serializers import HistoryMatchSerializer, ScoreSerializer
@@ -47,3 +48,21 @@ class HistoryScoreDetailView(generics.ListAPIView):
             match_id=match_id,
             golfer=golfer,
         ).select_related('hole').order_by('hole__nr_buca')
+
+
+class HistoryMatchDeleteView(generics.DestroyAPIView):
+    """DELETE /api/v1/history/matches/{match_id}/ - Remove a match from the current golfer's history."""
+    queryset = Match.objects.all()
+    lookup_url_kwarg = 'match_id'
+
+    def destroy(self, request, *args, **kwargs):
+        match = self.get_object()
+        golfer = request.user.golfer_profile
+
+        Score.objects.filter(match=match, golfer=golfer).delete()
+        Ranking.objects.filter(match=match, golfer=golfer).delete()
+
+        if not Ranking.objects.filter(match=match).exists() and not Score.objects.filter(match=match).exists():
+            match.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
