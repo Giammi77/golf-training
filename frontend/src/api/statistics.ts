@@ -1,5 +1,5 @@
 import client from './client';
-import type { HistoryMatch, Score, PointsTrend, PointsDistribution } from '@/types';
+import type { HistoryMatch, Score, PointsTrend, PointsDistribution, StatisticsSummary, ParPerformance } from '@/types';
 
 export const getHistoryMatches = async (): Promise<HistoryMatch[]> => {
   const { data } = await client.get<{ results: HistoryMatch[] }>('/history/matches/');
@@ -22,5 +22,15 @@ export const getPointsTrend = async (limit = 15): Promise<PointsTrend[]> => {
 
 export const getPointsDistribution = async (): Promise<PointsDistribution[]> => {
   const { data } = await client.get('/statistics/points-distribution/');
+  return data.results ?? data;
+};
+
+export const getStatisticsSummary = async (): Promise<StatisticsSummary> => {
+  const { data } = await client.get('/statistics/summary/');
+  return data;
+};
+
+export const getParPerformance = async (): Promise<ParPerformance[]> => {
+  const { data } = await client.get('/statistics/par-performance/');
   return data.results ?? data;
 };

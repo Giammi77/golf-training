@@ -89,6 +89,19 @@ export interface PointsDistribution {
   frequenza: number;
 }
 
+export interface StatisticsSummary {
+  total_matches: number;
+  avg_points: number;
+  max_points: number;
+  avg_last_5: number;
+}
+
+export interface ParPerformance {
+  par: number;
+  avg_punti: number;
+  num_buche: number;
+}
+
 export interface OfficialResult {
   id: number;
   data: string | null;
