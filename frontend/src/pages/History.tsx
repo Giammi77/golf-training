@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getHistoryMatches, getHistoryScores, deleteHistoryMatch } from '@/api/statistics';
+import { useAuthStore } from '@/store/authStore';
 import type { HistoryMatch, Score } from '@/types';
 
 export default function HistoryPage() {
   const [selectedMatch, setSelectedMatch] = useState<HistoryMatch | null>(null);
+  const clubId = useAuthStore((s) => s.clubId);
   const queryClient = useQueryClient();
 
   const { data: matches = [], isLoading } = useQuery({
-    queryKey: ['history-matches'],
-    queryFn: getHistoryMatches,
+    queryKey: ['history-matches', clubId],
+    queryFn: () => getHistoryMatches(clubId),
   });
 
   const deleteMutation = useMutation({

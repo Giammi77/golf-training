@@ -4,6 +4,12 @@ from django.db.models import Sum, Case, When, Value, IntegerField, F, Avg, Count
 from .models import Match, Score, Ranking
 
 
+def get_club_filter(request):
+    """Return the club id from query param, or None."""
+    club_id = request.query_params.get('club')
+    return int(club_id) if club_id else None
+
+
 class PointsTrendView(views.APIView):
     """GET /api/v1/statistics/points-trend/ - Points over last N matches."""
 
@@ -11,9 +17,11 @@ class PointsTrendView(views.APIView):
         golfer = request.user.golfer_profile
         limit = int(request.query_params.get('limit', 15))
 
-        rankings = Ranking.objects.filter(
-            golfer=golfer,
-        ).select_related('match').order_by('-match__data', '-match__nr_giro')[:limit]
+        rankings = Ranking.objects.filter(golfer=golfer)
+        club_id = get_club_filter(request)
+        if club_id:
+            rankings = rankings.filter(match__club_id=club_id)
+        rankings = rankings.select_related('match').order_by('-match__data', '-match__nr_giro')[:limit]
 
         data = [
             {
@@ -34,13 +42,17 @@ class PointsDistributionView(views.APIView):
     def get(self, request):
         golfer = request.user.golfer_profile
 
-        # Get all individual hole scores with points
-        scores = Score.objects.filter(
+        base_scores = Score.objects.filter(
             golfer=golfer,
             terminato=True,
             colpi_giocati__isnull=False,
             colpi_giocati__gt=0,
-        ).annotate(
+        )
+        club_id = get_club_filter(request)
+        if club_id:
+            base_scores = base_scores.filter(club_id=club_id)
+
+        scores = base_scores.annotate(
             punti_buca=Case(
                 When(
                     colpi_giocati__gt=F('par_giocatore') + 2,
@@ -68,6 +80,9 @@ class StatisticsSummaryView(views.APIView):
         golfer = request.user.golfer_profile
 
         rankings = Ranking.objects.filter(golfer=golfer)
+        club_id = get_club_filter(request)
+        if club_id:
+            rankings = rankings.filter(match__club_id=club_id)
         total_matches = rankings.count()
 
         if total_matches == 0:
@@ -102,12 +117,17 @@ class ParPerformanceView(views.APIView):
     def get(self, request):
         golfer = request.user.golfer_profile
 
-        scores = Score.objects.filter(
+        base_scores = Score.objects.filter(
             golfer=golfer,
             terminato=True,
             colpi_giocati__isnull=False,
             colpi_giocati__gt=0,
-        ).annotate(
+        )
+        club_id = get_club_filter(request)
+        if club_id:
+            base_scores = base_scores.filter(club_id=club_id)
+
+        scores = base_scores.annotate(
             punti_buca=Case(
                 When(
                     colpi_giocati__gt=F('par_giocatore') + 2,

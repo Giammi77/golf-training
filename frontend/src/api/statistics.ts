@@ -1,8 +1,11 @@
 import client from './client';
 import type { HistoryMatch, Score, PointsTrend, PointsDistribution, StatisticsSummary, ParPerformance } from '@/types';
 
-export const getHistoryMatches = async (): Promise<HistoryMatch[]> => {
-  const { data } = await client.get<{ results: HistoryMatch[] }>('/history/matches/');
+const clubParam = (clubId?: number | null) =>
+  clubId ? `?club=${clubId}` : '';
+
+export const getHistoryMatches = async (clubId?: number | null): Promise<HistoryMatch[]> => {
+  const { data } = await client.get<{ results: HistoryMatch[] }>(`/history/matches/${clubParam(clubId)}`);
   return data.results;
 };
 
@@ -15,22 +18,23 @@ export const deleteHistoryMatch = async (matchId: number): Promise<void> => {
   await client.delete(`/history/matches/${matchId}/`);
 };
 
-export const getPointsTrend = async (limit = 15): Promise<PointsTrend[]> => {
-  const { data } = await client.get(`/statistics/points-trend/?limit=${limit}`);
+export const getPointsTrend = async (limit = 15, clubId?: number | null): Promise<PointsTrend[]> => {
+  const p = clubId ? `&club=${clubId}` : '';
+  const { data } = await client.get(`/statistics/points-trend/?limit=${limit}${p}`);
   return data.results ?? data;
 };
 
-export const getPointsDistribution = async (): Promise<PointsDistribution[]> => {
-  const { data } = await client.get('/statistics/points-distribution/');
+export const getPointsDistribution = async (clubId?: number | null): Promise<PointsDistribution[]> => {
+  const { data } = await client.get(`/statistics/points-distribution/${clubParam(clubId)}`);
   return data.results ?? data;
 };
 
-export const getStatisticsSummary = async (): Promise<StatisticsSummary> => {
-  const { data } = await client.get('/statistics/summary/');
+export const getStatisticsSummary = async (clubId?: number | null): Promise<StatisticsSummary> => {
+  const { data } = await client.get(`/statistics/summary/${clubParam(clubId)}`);
   return data;
 };
 
-export const getParPerformance = async (): Promise<ParPerformance[]> => {
-  const { data } = await client.get('/statistics/par-performance/');
+export const getParPerformance = async (clubId?: number | null): Promise<ParPerformance[]> => {
+  const { data } = await client.get(`/statistics/par-performance/${clubParam(clubId)}`);
   return data.results ?? data;
 };

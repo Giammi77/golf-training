@@ -5,6 +5,14 @@ from .models import Match, Score, Ranking
 from .serializers import HistoryMatchSerializer, ScoreSerializer
 
 
+def filter_by_club(queryset, request, field='club_id'):
+    """Filter a queryset by `club` query param."""
+    club_id = request.query_params.get('club')
+    if not club_id:
+        return queryset
+    return queryset.filter(**{field: club_id})
+
+
 class HistoryMatchListView(generics.ListAPIView):
     """GET /api/v1/history/matches/ - Past matches for the current golfer."""
     serializer_class = HistoryMatchSerializer
@@ -12,7 +20,7 @@ class HistoryMatchListView(generics.ListAPIView):
     def get_queryset(self):
         golfer = self.request.user.golfer_profile
 
-        return Match.objects.filter(
+        qs = Match.objects.filter(
             rankings__golfer=golfer,
         ).annotate(
             punti=Subquery(
@@ -35,6 +43,8 @@ class HistoryMatchListView(generics.ListAPIView):
                 ).values('terminato')[:1]
             ),
         ).order_by('-data', '-nr_giro')
+
+        return filter_by_club(qs, self.request)
 
 
 class HistoryScoreDetailView(generics.ListAPIView):

@@ -7,6 +7,7 @@ import {
 import {
   getPointsTrend, getPointsDistribution, getStatisticsSummary, getParPerformance,
 } from '@/api/statistics';
+import { useAuthStore } from '@/store/authStore';
 
 type Tab = 'dashboard' | 'trend' | 'distribution' | 'par';
 
@@ -36,25 +37,26 @@ const STAT_INFO: Record<Tab, { title: string; description: string }> = {
 export default function StatisticsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [showInfo, setShowInfo] = useState(false);
+  const clubId = useAuthStore((s) => s.clubId);
 
   const { data: summary } = useQuery({
-    queryKey: ['statistics-summary'],
-    queryFn: getStatisticsSummary,
+    queryKey: ['statistics-summary', clubId],
+    queryFn: () => getStatisticsSummary(clubId),
   });
 
   const { data: trend = [], isLoading: loadingTrend } = useQuery({
-    queryKey: ['points-trend'],
-    queryFn: () => getPointsTrend(15),
+    queryKey: ['points-trend', clubId],
+    queryFn: () => getPointsTrend(15, clubId),
   });
 
   const { data: distribution = [], isLoading: loadingDist } = useQuery({
-    queryKey: ['points-distribution'],
-    queryFn: getPointsDistribution,
+    queryKey: ['points-distribution', clubId],
+    queryFn: () => getPointsDistribution(clubId),
   });
 
   const { data: parPerf = [], isLoading: loadingPar } = useQuery({
-    queryKey: ['par-performance'],
-    queryFn: getParPerformance,
+    queryKey: ['par-performance', clubId],
+    queryFn: () => getParPerformance(clubId),
   });
 
   const info = STAT_INFO[activeTab];
