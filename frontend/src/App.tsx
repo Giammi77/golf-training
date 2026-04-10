@@ -9,6 +9,7 @@ import HistoryPage from '@/pages/History';
 import StatisticsPage from '@/pages/Statistics';
 import ResultsPage from '@/pages/Results';
 import ProfilePage from '@/pages/Profile';
+import GuidePage from '@/pages/Guide';
 import AdminGolfersPage from '@/pages/AdminGolfers';
 
 function useBootstrapUser() {
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="statistics" element={<StatisticsPage />} />
         <Route path="results" element={<ResultsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="guide" element={<GuidePage />} />
         <Route
           path="gestione/giocatori"
           element={

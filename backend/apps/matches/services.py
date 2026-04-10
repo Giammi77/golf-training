@@ -43,57 +43,48 @@ def calculate_handicap_strokes(holes_ordered_by_hcp, hcp):
 def register_match(club_id, golfer_profile):
     """
     Register a golfer in today's match, creating the match if needed.
-    Initializes 18 empty score records.
 
-    Port of registraMatch() from match.py + chkScores() from score.py.
+    Logic: the round number for this golfer is determined by how many rounds
+    he has already finished today in this club (not by what other golfers did).
+    All golfers playing their Nth round of the day share the same Match instance.
     """
     from apps.clubs.models import Club
-    from apps.courses.models import Hole
-    from apps.matches.models import Match, Score, Ranking
+    from apps.matches.models import Match, Score
 
     club = Club.objects.get(id=club_id)
     today = timezone.localdate()
 
-    # Check if golfer already has scores in an unfinished match today
-    existing_match = Match.objects.filter(
+    # If the golfer has an open (non-terminato) match today in this club, return it
+    open_match = Match.objects.filter(
         club=club,
         data=today,
         scores__golfer=golfer_profile,
         scores__terminato=False,
-    ).first()
-
-    if existing_match:
-        return existing_match
-
-    # Find an unfinished match for this club today (no finished scores for any golfer)
-    unfinished_match = Match.objects.filter(
-        club=club,
-        data=today,
-    ).exclude(
-        scores__terminato=True
     ).order_by('-nr_giro').first()
 
-    if unfinished_match:
-        # Check if golfer already has scores in this match
-        if not Score.objects.filter(match=unfinished_match, golfer=golfer_profile).exists():
-            _initialize_scores(unfinished_match, golfer_profile, club)
-        return unfinished_match
+    if open_match:
+        return open_match
 
-    # Get last finished round number for today
-    last_finished_giro = Match.objects.filter(
+    # Otherwise the golfer is starting a new round: the target round number is
+    # (number of rounds this golfer has already closed today) + 1
+    closed_rounds_today = Match.objects.filter(
         club=club,
         data=today,
+        scores__golfer=golfer_profile,
         scores__terminato=True,
-    ).values_list('nr_giro', flat=True).order_by('-nr_giro').first() or 0
+    ).distinct().count()
+    target_giro = closed_rounds_today + 1
 
-    # Create new match
-    match = Match.objects.create(
+    # Try to join the existing match for today at that round number
+    match, created = Match.objects.get_or_create(
         club=club,
         data=today,
-        nr_giro=last_finished_giro + 1,
+        nr_giro=target_giro,
     )
 
-    _initialize_scores(match, golfer_profile, club)
+    if not Score.objects.filter(match=match, golfer=golfer_profile).exists():
+        _initialize_scores(match, golfer_profile, club)
+
     return match
 
 

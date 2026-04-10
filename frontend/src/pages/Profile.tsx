@@ -280,6 +280,13 @@ export default function ProfilePage() {
       )}
 
       <button
+        onClick={() => navigate('/guide')}
+        className="w-full mt-4 bg-golf-light text-white py-2.5 rounded-lg font-semibold"
+      >
+        📖 Guida all'uso
+      </button>
+
+      <button
         onClick={handleLogout}
         className="w-full mt-4 bg-red-500 text-white py-2.5 rounded-lg font-semibold"
       >
