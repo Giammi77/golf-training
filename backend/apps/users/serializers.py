@@ -63,3 +63,35 @@ class AdminGolferSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'golfer_profile']
         read_only_fields = fields
+
+
+class RegisterSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True, min_length=6)
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    nr_tessera = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    hcp = serializers.DecimalField(max_digits=5, decimal_places=1, required=False, default=54)
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError('Username gia\' in uso.')
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        nr_tessera = validated_data.pop('nr_tessera', '')
+        hcp = validated_data.pop('hcp', 54)
+
+        user = User(
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data.get('email', ''),
+        )
+        user.set_password(password)
+        user.save()
+
+        GolferProfile.objects.create(user=user, nr_tessera=nr_tessera, hcp=hcp)
+        return user

@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { login, getMe } from '@/api/auth';
 import { getClubs } from '@/api/clubs';
+import { useIsInstalled } from '@/hooks/useIsInstalled';
+import InstallHelpModal from '@/components/InstallHelpModal';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,6 +15,8 @@ export default function Login() {
   const [selectedClub, setSelectedClub] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const isInstalled = useIsInstalled();
 
   const { data: clubs = [] } = useQuery({
     queryKey: ['clubs'],
@@ -108,7 +112,18 @@ export default function Login() {
             {loading ? 'Accesso...' : 'Accedi'}
           </button>
         </form>
+
+        {!isInstalled && (
+          <button
+            onClick={() => setShowInstallHelp(true)}
+            className="w-full mt-4 text-xs text-golf-green underline text-center"
+          >
+            📱 Come installare l'app sul telefono
+          </button>
+        )}
       </div>
+
+      <InstallHelpModal open={showInstallHelp} onClose={() => setShowInstallHelp(false)} />
     </div>
   );
 }

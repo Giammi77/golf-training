@@ -1,5 +1,10 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { useIsInstalled } from '@/hooks/useIsInstalled';
+import InstallHelpModal from './InstallHelpModal';
+
+const DISMISS_KEY = 'install_banner_dismissed';
 
 const baseTabs = [
   { path: '/match', label: 'Match', icon: '⛳' },
@@ -13,6 +18,18 @@ const adminTab = { path: '/gestione/giocatori', label: 'Admin', icon: '🔧' };
 export default function Layout() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
+  const isInstalled = useIsInstalled();
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(
+    () => localStorage.getItem(DISMISS_KEY) === '1'
+  );
+
+  const dismissBanner = () => {
+    localStorage.setItem(DISMISS_KEY, '1');
+    setBannerDismissed(true);
+  };
+
+  const showInstallBanner = !isInstalled && !bannerDismissed;
 
   const isAdminOnly = user?.is_staff && !user?.golfer_profile;
   const tabs = isAdminOnly
@@ -33,6 +50,29 @@ export default function Layout() {
           {user ? `${user.first_name}` : 'Profilo'}
         </button>
       </header>
+
+      {showInstallBanner && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center gap-3 text-sm">
+          <span className="flex-1 text-amber-900">
+            📱 Installa l'app sul telefono per usarla meglio
+          </span>
+          <button
+            onClick={() => setShowInstallHelp(true)}
+            className="text-golf-green font-semibold"
+          >
+            Come fare
+          </button>
+          <button
+            onClick={dismissBanner}
+            className="text-gray-400 text-lg leading-none"
+            aria-label="Chiudi"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      <InstallHelpModal open={showInstallHelp} onClose={() => setShowInstallHelp(false)} />
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto pb-16">

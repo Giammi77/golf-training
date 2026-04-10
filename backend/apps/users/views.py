@@ -7,6 +7,7 @@ from .serializers import (
     MeSerializer,
     ChangePasswordSerializer,
     AdminGolferSerializer,
+    RegisterSerializer,
 )
 
 
@@ -58,6 +59,20 @@ class ResetGolferPasswordView(APIView):
         user.set_password(default_password)
         user.save()
         return Response({'detail': f'Password resettata a: {default_password}'})
+
+
+class RegisterView(APIView):
+    """POST /api/v1/auth/register/ - Public endpoint: self-registration for new golfers."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response(
+            {'id': user.id, 'username': user.username, 'detail': 'Registrazione completata.'},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class ResetMyScoresView(APIView):

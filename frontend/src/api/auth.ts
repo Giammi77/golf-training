@@ -39,3 +39,17 @@ export const resetMyScores = async (): Promise<{ detail: string }> => {
   const { data } = await client.post<{ detail: string }>('/auth/reset-scores/');
   return data;
 };
+
+export interface RegisterPayload {
+  username: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  nr_tessera?: string;
+  hcp?: number;
+}
+
+export const registerGolfer = async (payload: RegisterPayload): Promise<void> => {
+  await client.post('/auth/register/', payload);
+};

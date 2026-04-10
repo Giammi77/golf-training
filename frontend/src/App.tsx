@@ -3,7 +3,9 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { getMe } from '@/api/auth';
 import Layout from '@/components/Layout';
+import UpdatePrompt from '@/components/UpdatePrompt';
 import Login from '@/pages/Login';
+import Register from '@/pages/Register';
 import MatchPage from '@/pages/Match';
 import HistoryPage from '@/pages/History';
 import StatisticsPage from '@/pages/Statistics';
@@ -53,8 +55,18 @@ export default function App() {
   useBootstrapUser();
 
   return (
+    <>
+      <UpdatePrompt />
+      <AppRoutes />
+    </>
+  );
+}
+
+function AppRoutes() {
+  return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route
         path="/"
         element={
