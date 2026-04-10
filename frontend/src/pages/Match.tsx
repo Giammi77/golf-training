@@ -93,6 +93,11 @@ export default function MatchPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scores', activeMatch?.id] });
       queryClient.invalidateQueries({ queryKey: ['leaderboard', activeMatch?.id] });
+      queryClient.invalidateQueries({ queryKey: ['history-matches'] });
+      queryClient.invalidateQueries({ queryKey: ['statistics-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['points-trend'] });
+      queryClient.invalidateQueries({ queryKey: ['points-distribution'] });
+      queryClient.invalidateQueries({ queryKey: ['par-performance'] });
     },
   });
 
