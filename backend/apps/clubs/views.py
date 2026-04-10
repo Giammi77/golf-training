@@ -5,7 +5,7 @@ from .serializers import ClubSerializer, ClubListSerializer
 
 class ClubListView(generics.ListAPIView):
     """GET /api/v1/clubs/ - List all clubs."""
-    queryset = Club.objects.all()
+    queryset = Club.objects.order_by('ragione_sociale')
     serializer_class = ClubListSerializer
     permission_classes = [permissions.AllowAny]
 
