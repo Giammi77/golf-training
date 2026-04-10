@@ -102,13 +102,28 @@ export default function GuidePage() {
         <h2 className="text-base font-bold text-golf-green mb-2">📋 Storico</h2>
         <p>
           Il tab <strong>Storico</strong> mostra tutti i match che hai giocato
-          <em> nel club selezionato al login</em>. Tocca un match per vedere
-          il dettaglio buca per buca, oppure usa il cestino per rimuovere un
-          match.
+          <em> nel club selezionato al login</em>. Tocca un match per vedere:
+        </p>
+        <ul className="list-disc ml-5 mt-2 space-y-1">
+          <li>Il <strong>totale punti</strong> del tuo giro</li>
+          <li>Il <strong>dettaglio buca per buca</strong> (colpi giocati e punti)</li>
+          <li>
+            La <strong>classifica completa del giro</strong> con la tua riga
+            evidenziata
+          </li>
+        </ul>
+        <p className="mt-2">
+          La classifica viene <strong>aggiornata in tempo reale</strong>: ogni
+          volta che tu o un altro partecipante aggiunge/toglie un colpo o
+          termina il giro, il sistema ricalcola la posizione di tutti. Se
+          apri lo storico di un giro ancora in corso, vedrai la classifica
+          live con i pareggi gestiti automaticamente (golfisti con lo stesso
+          punteggio condividono la stessa posizione).
         </p>
         <p className="mt-2">
           Se giochi in piu' club, cambiando il club al login vedrai lo storico
-          corrispondente.
+          corrispondente. Puoi rimuovere un match dallo storico con il
+          pulsante cestino accanto al match.
         </p>
       </section>
 

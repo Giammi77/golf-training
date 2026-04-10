@@ -62,6 +62,7 @@ export interface Score {
 
 export interface Ranking {
   id: number;
+  golfer_id: number;
   golfer_name: string;
   posizione: number | null;
   punti: number;

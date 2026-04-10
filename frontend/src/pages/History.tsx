@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getHistoryMatches, getHistoryScores, deleteHistoryMatch } from '@/api/statistics';
+import { getLeaderboard } from '@/api/matches';
 import { useAuthStore } from '@/store/authStore';
-import type { HistoryMatch, Score } from '@/types';
+import type { HistoryMatch, Score, Ranking } from '@/types';
 
 export default function HistoryPage() {
   const [selectedMatch, setSelectedMatch] = useState<HistoryMatch | null>(null);
@@ -33,6 +34,15 @@ export default function HistoryPage() {
     queryFn: () => getHistoryScores(selectedMatch!.id),
     enabled: !!selectedMatch,
   });
+
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ['history-leaderboard', selectedMatch?.id],
+    queryFn: () => getLeaderboard(selectedMatch!.id),
+    enabled: !!selectedMatch,
+  });
+
+  const user = useAuthStore((s) => s.user);
+  const currentGolferId = user?.golfer_profile?.id;
 
   if (isLoading) {
     return <div className="p-4 text-center text-gray-500">Caricamento...</div>;
@@ -76,6 +86,35 @@ export default function HistoryPage() {
             </div>
           ))}
         </div>
+
+        {leaderboard.length > 0 && (
+          <div className="mt-6">
+            <h3 className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 border-y">
+              Classifica del giro
+            </h3>
+            <div className="divide-y">
+              {leaderboard.map((r: Ranking) => {
+                const isMe = r.golfer_id === currentGolferId;
+                return (
+                  <div
+                    key={r.id}
+                    className={`flex items-center px-4 py-2.5 text-sm ${
+                      isMe ? 'bg-golf-green/10 font-semibold' : ''
+                    }`}
+                  >
+                    <div className="w-10 text-center text-gray-500 font-bold">
+                      {r.posizione ?? '-'}
+                    </div>
+                    <div className="flex-1 truncate">{r.golfer_name}</div>
+                    <div className="w-16 text-right text-golf-green font-bold">
+                      {r.punti} pt
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -18,10 +18,11 @@ class ScoreSerializer(serializers.ModelSerializer):
 
 class RankingSerializer(serializers.ModelSerializer):
     golfer_name = serializers.CharField(source='golfer.nominativo', read_only=True)
+    golfer_id = serializers.IntegerField(source='golfer.id', read_only=True)
 
     class Meta:
         model = Ranking
-        fields = ['id', 'golfer_name', 'posizione', 'punti']
+        fields = ['id', 'golfer_id', 'golfer_name', 'posizione', 'punti']
 
 
 class MatchSerializer(serializers.ModelSerializer):
