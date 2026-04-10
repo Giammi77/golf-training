@@ -1,5 +1,8 @@
+import secrets
+from datetime import timedelta
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -31,3 +34,27 @@ class GolferProfile(models.Model):
     @property
     def nominativo(self):
         return f"{self.user.first_name} {self.user.last_name} Hcp {self.hcp}"
+
+
+class PasswordResetToken(models.Model):
+    """One-time token used by admin-generated password reset links."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'golf_password_reset_token'
+
+    @classmethod
+    def create_for_user(cls, user):
+        return cls.objects.create(user=user, token=secrets.token_urlsafe(32))
+
+    def is_valid(self):
+        if self.used_at is not None:
+            return False
+        return timezone.now() - self.created_at < timedelta(hours=24)
+
+    def mark_used(self):
+        self.used_at = timezone.now()
+        self.save(update_fields=['used_at'])

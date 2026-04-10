@@ -2,12 +2,13 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from apps.matches.models import Score, Ranking
-from .models import User
+from .models import User, PasswordResetToken
 from .serializers import (
     MeSerializer,
     ChangePasswordSerializer,
     AdminGolferSerializer,
     RegisterSerializer,
+    PasswordResetConfirmSerializer,
 )
 
 
@@ -43,8 +44,8 @@ class GolferListView(generics.ListAPIView):
     )
 
 
-class ResetGolferPasswordView(APIView):
-    """POST /api/v1/auth/golfers/<id>/reset-password/ - Reset to default (admin only)."""
+class GenerateResetLinkView(APIView):
+    """POST /api/v1/auth/golfers/<id>/reset-link/ - Generate one-time reset token (admin only)."""
     permission_classes = [permissions.IsAdminUser]
 
     def post(self, request, pk):
@@ -55,10 +56,24 @@ class ResetGolferPasswordView(APIView):
                 {'detail': 'Giocatore non trovato.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        default_password = (user.last_name + user.first_name).lower().replace(' ', '')
-        user.set_password(default_password)
-        user.save()
-        return Response({'detail': f'Password resettata a: {default_password}'})
+        token_obj = PasswordResetToken.create_for_user(user)
+        return Response({
+            'token': token_obj.token,
+            'username': user.username,
+            'full_name': f'{user.first_name} {user.last_name}'.strip(),
+            'expires_hours': 24,
+        })
+
+
+class PasswordResetConfirmView(APIView):
+    """POST /api/v1/auth/password-reset/confirm/ - Public: consume token and set new password."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({'detail': 'Password aggiornata con successo.', 'username': user.username})
 
 
 class RegisterView(APIView):

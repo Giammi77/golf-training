@@ -1,6 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import User, GolferProfile
+from .models import User, GolferProfile, PasswordResetToken
 
 
 class GolferProfileSerializer(serializers.ModelSerializer):
@@ -63,6 +63,29 @@ class AdminGolferSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email', 'golfer_profile']
         read_only_fields = fields
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=6, write_only=True)
+
+    def validate_token(self, value):
+        try:
+            token_obj = PasswordResetToken.objects.select_related('user').get(token=value)
+        except PasswordResetToken.DoesNotExist:
+            raise serializers.ValidationError('Token non valido.')
+        if not token_obj.is_valid():
+            raise serializers.ValidationError('Token scaduto o gia\' utilizzato.')
+        self.context['token_obj'] = token_obj
+        return value
+
+    def save(self):
+        token_obj: PasswordResetToken = self.context['token_obj']
+        user = token_obj.user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        token_obj.mark_used()
+        return user
 
 
 class RegisterSerializer(serializers.Serializer):

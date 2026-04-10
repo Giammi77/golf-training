@@ -30,11 +30,6 @@ export const getGolfers = async (): Promise<User[]> => {
   return data.results;
 };
 
-export const resetGolferPassword = async (golferId: number): Promise<{ detail: string }> => {
-  const { data } = await client.post<{ detail: string }>(`/auth/golfers/${golferId}/reset-password/`);
-  return data;
-};
-
 export const resetMyScores = async (): Promise<{ detail: string }> => {
   const { data } = await client.post<{ detail: string }>('/auth/reset-scores/');
   return data;
@@ -52,4 +47,20 @@ export interface RegisterPayload {
 
 export const registerGolfer = async (payload: RegisterPayload): Promise<void> => {
   await client.post('/auth/register/', payload);
+};
+
+export interface GenerateResetLinkResponse {
+  token: string;
+  username: string;
+  full_name: string;
+  expires_hours: number;
+}
+
+export const generateResetLink = async (golferId: number): Promise<GenerateResetLinkResponse> => {
+  const { data } = await client.post<GenerateResetLinkResponse>(`/auth/golfers/${golferId}/reset-link/`);
+  return data;
+};
+
+export const confirmPasswordReset = async (token: string, new_password: string): Promise<void> => {
+  await client.post('/auth/password-reset/confirm/', { token, new_password });
 };

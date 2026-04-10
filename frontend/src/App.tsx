@@ -6,6 +6,7 @@ import Layout from '@/components/Layout';
 import UpdatePrompt from '@/components/UpdatePrompt';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import ResetPassword from '@/pages/ResetPassword';
 import MatchPage from '@/pages/Match';
 import HistoryPage from '@/pages/History';
 import StatisticsPage from '@/pages/Statistics';
@@ -67,6 +68,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route
         path="/"
         element={

@@ -9,6 +9,7 @@ urlpatterns = [
     path('me/', views.MeView.as_view(), name='me'),
     path('change-password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('golfers/', views.GolferListView.as_view(), name='golfer_list'),
-    path('golfers/<int:pk>/reset-password/', views.ResetGolferPasswordView.as_view(), name='reset_golfer_password'),
+    path('golfers/<int:pk>/reset-link/', views.GenerateResetLinkView.as_view(), name='generate_reset_link'),
+    path('password-reset/confirm/', views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset-scores/', views.ResetMyScoresView.as_view(), name='reset_my_scores'),
 ]

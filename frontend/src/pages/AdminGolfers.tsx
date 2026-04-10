@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getGolfers, resetGolferPassword } from '@/api/auth';
+import { getGolfers, generateResetLink } from '@/api/auth';
 import type { User } from '@/types';
 
 export default function AdminGolfersPage() {
@@ -11,44 +11,71 @@ export default function AdminGolfersPage() {
 
   const [feedback, setFeedback] = useState<{ id: number; type: 'success' | 'error'; text: string } | null>(null);
 
-  const resetMutation = useMutation({
-    mutationFn: (golferId: number) => resetGolferPassword(golferId),
-    onSuccess: (data, golferId) => {
-      setFeedback({ id: golferId, type: 'success', text: data.detail });
+  const resetLinkMutation = useMutation({
+    mutationFn: (golferId: number) => generateResetLink(golferId),
+    onSuccess: async (data, golferId) => {
+      const link = `${window.location.origin}/reset-password/${data.token}`;
+      const message = `Ciao ${data.full_name}, ecco il link per impostare la tua nuova password su Golf Training (valido 24h):\n\n${link}`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Reset password', text: message, url: link });
+          setFeedback({ id: golferId, type: 'success', text: 'Link condiviso.' });
+          return;
+        } catch {
+          /* fall through to clipboard */
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(message);
+        setFeedback({ id: golferId, type: 'success', text: 'Link copiato negli appunti.' });
+      } catch {
+        window.prompt('Copia il link:', link);
+        setFeedback({ id: golferId, type: 'success', text: 'Link generato.' });
+      }
     },
     onError: (_err, golferId) => {
-      setFeedback({ id: golferId, type: 'error', text: 'Errore nel reset della password.' });
+      setFeedback({ id: golferId, type: 'error', text: 'Errore generazione link.' });
     },
   });
 
-  const handleReset = (golfer: User) => {
-    const defaultPwd = (golfer.last_name + golfer.first_name).toLowerCase().replace(/\s/g, '');
-    if (!window.confirm(
-      `Resettare la password di ${golfer.first_name} ${golfer.last_name} a "${defaultPwd}"?`
-    )) return;
+  const handleGenerateResetLink = (golfer: User) => {
     setFeedback(null);
-    resetMutation.mutate(golfer.id);
+    resetLinkMutation.mutate(golfer.id);
   };
 
   const [inviteCopied, setInviteCopied] = useState(false);
 
-  const copyInviteLink = async () => {
+  const buildInviteMessage = () => {
     const link = `${window.location.origin}/register`;
+    return `🏌️ Ti invito su Golf Training!
+
+E' l'app che trasforma i tuoi allenamenti al circolo in piccole gare quotidiane: ogni giro diventa un match con classifica Stableford, sfidando gli altri golfisti della giornata.
+
+✅ Registra i tuoi colpi buca per buca
+✅ Classifica in tempo reale con gli altri soci
+✅ Storico dei match e statistiche sulle tue performance
+✅ Gratis, senza pubblicita', installabile come app
+
+Iscriviti qui 👉 ${link}`;
+  };
+
+  const copyInviteLink = async () => {
+    const message = buildInviteMessage();
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(message);
       setInviteCopied(true);
       setTimeout(() => setInviteCopied(false), 2500);
     } catch {
-      window.prompt('Copia il link:', link);
+      window.prompt('Copia il messaggio:', message);
     }
   };
 
   const shareInvite = async () => {
     const link = `${window.location.origin}/register`;
-    const text = `Ciao! Ti invito a iscriverti a Golf Training: ${link}`;
+    const message = buildInviteMessage();
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Golf Training', text, url: link });
+        await navigator.share({ title: 'Golf Training', text: message, url: link });
       } catch {
         /* user cancelled */
       }
@@ -99,11 +126,12 @@ export default function AdminGolfersPage() {
             </div>
             <div className="flex flex-col items-end gap-1">
               <button
-                onClick={() => handleReset(g)}
-                disabled={resetMutation.isPending}
-                className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold disabled:opacity-50"
+                onClick={() => handleGenerateResetLink(g)}
+                disabled={resetLinkMutation.isPending}
+                className="text-xs bg-blue-500 text-white px-3 py-1.5 rounded-lg font-semibold disabled:opacity-50"
+                title="Genera e condividi link reset password (valido 24h)"
               >
-                Reset Password
+                🔗 Link reset password
               </button>
               {feedback?.id === g.id && (
                 <span className={`text-xs ${feedback.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
