@@ -5,7 +5,7 @@ export default function UpdatePrompt() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisterError(error) {
+    onRegisterError(error: unknown) {
       console.error('SW registration error', error);
     },
   });
